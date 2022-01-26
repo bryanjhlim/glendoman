@@ -44,7 +44,7 @@ def generate_equation(no_operators, operators, generated_numbers):
             print("Duplicate", num)
             # return -1
         # select operator
-        operator = operators[random.randint(0, 3)]
+        operator = operators[random.randint(0, 1)]
 
         print(i, num, operator)
 
@@ -207,13 +207,21 @@ if __name__ == "__main__":
     # prevent duplicates for ease of all sets preparation in advance
     generated_numbers = []
 
+    # total equations = 9
+    total_equations = 9
+
     random.seed()
 
-    for num_equations in range(0, 9):
-        no_operators = random.randint(1, 3)    
+    # generate equations containing + and - operators only
+    num_add_sub_equations = 5
+    print("Generating equations containing + and - operators only")
+    for num_equations in range(0, num_add_sub_equations):
+        # do 2 operators for all equations
+        # no_operators = random.randint(1, 2)
+        no_operators = 2
         print("no_operators", no_operators)
         while (True):
-            e = generate_equation(no_operators, operators, generated_numbers)
+            e = generate_equation(no_operators, operators[0:2], generated_numbers)
             if e != -1:
                 print("Equation", e)
                 equations.append(e)
@@ -224,33 +232,44 @@ if __name__ == "__main__":
                 break
             else:
                 print("> Retry")
-    
-    sorted_numbers = []
-    # for visual manual tallying if there are duplicate bugs
-    all_numbers = []
 
-    # for l in equations:
-    #     while (True):
-    #         other_num = random.randint(0, 100)
-    #         if other_num not in generated_numbers:
-    #             l.append("or")
-    #             l.append(other_num)
-    #             generated_numbers.append(other_num)
-    #             break
-
-    # generate the greater and less than equations
-    for num_gt_lt_eq in range(0, 3):
+    # generate equations containing / and x operators only
+    print("Generating equations containing / and x operators only")
+    for num_equations in range(0, total_equations-num_add_sub_equations):
+        # no_operators = random.randint(1, 2)
+        no_operators = 2
+        print("no_operators", no_operators)
         while (True):
-            e = generate_greater_less_than_equations(equalities_inequalities, generated_numbers)
+            e = generate_equation(no_operators, operators[2:4], generated_numbers)
             if e != -1:
                 print("Equation", e)
                 equations.append(e)
+                # add numbers in equation to generated_numbers
                 for x in e:
                     if isinstance(x, int):
                         generated_numbers.append(x)
                 break
             else:
-                print("Retry")
+                print("> Retry")
+
+    sorted_numbers = []
+    # for visual manual tallying if there are duplicate bugs
+    all_numbers = []
+
+    # generate the greater and less than equations
+    # [26 Jan 2022] leave this after problem solving phase 1 done
+    # for num_gt_lt_eq in range(0, 3):
+    #     while (True):
+    #         e = generate_greater_less_than_equations(equalities_inequalities, generated_numbers)
+    #         if e != -1:
+    #             print("Equation", e)
+    #             equations.append(e)
+    #             for x in e:
+    #                 if isinstance(x, int):
+    #                     generated_numbers.append(x)
+    #             break
+    #         else:
+    #             print("Retry")
 
     for l in equations:
         for n in l:
@@ -259,11 +278,24 @@ if __name__ == "__main__":
                 if n not in sorted_numbers:
                     sorted_numbers.append(n)
 
-    print("\n##### START #####")
-    print(">>> Split into 3 equations per set. E.g. Set A has the 1st 3 equations, Set B has the next 3 equations. Set C has the last 3 equations. Show the equations and let baby choose the answer.")
-    print(">>> These are the equations to show. The first number in the RHS is always the correct total.")
-    pprint(equations)
+    # shuffle the list so that the same operations are not combined
+    # [26 Jan 2022] Do this at a later stage
+    # random.shuffle(equations)
+
+    print("  \n##### START #####")
+    print("  >>> Split into 3 equations per set. E.g. Set A has the 1st 3 equations, Set B has the next 3 equations. Set C has the last 3 equations. Show the equations and let baby choose the answer.")
+    print("  >>> These are the equations to show. The first number in the RHS is always the correct total.")
+    # pprint(equations)
+    count_set = 0
+    for e in equations:
+        e_str = ""
+        if count_set % 3 == 0:
+            print("\t>> [Set", int(count_set / 3 + 1), "\b]")
+        for element in e:
+            e_str += str(element) + " "
+        print("\t   " + e_str)
+        count_set += 1
     sorted_numbers.sort()
-    all_numbers.sort()
-    print(">>> For ease of preparation, take these numbers out from the main pile\n", len(sorted_numbers), sorted_numbers)
-    print("For manual verification of duplicates", len(all_numbers), all_numbers)
+    # all_numbers.sort()
+    print("  >>> For ease of preparation, take these numbers out from the main pile\n", sorted_numbers)
+    # print("For manual verification of duplicates", all_numbers)
