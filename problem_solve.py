@@ -1,34 +1,6 @@
 import random
-from pprint import pprint
-import time
 
-# TODO: Fix this, pass by reference
-def reduce_equation_with_bodmas_rule(operator, equation, total):
-    while operator in equation:
-        idx = equation.index(operator)
-
-        print(idx)
-
-        # prevent division by 0
-        if operator == "/":
-            if equation[idx+1] == 0:
-                print("Division by 0")
-                return -1
-
-        if operator == "/":
-            total = equation[idx-1] / equation[idx+1]
-        elif operator == "x":
-            total = equation[idx-1] * equation[idx+1]
-        elif operator == "+":
-            total = equation[idx-1] + equation[idx+1]
-        elif operator == "-":
-            total = equation[idx-1] - equation[idx+1]
-
-        equation[idx-1] = total
-        del equation[idx+1]
-        del equation[idx]
-
-def generate_equation(no_operators, operators, generated_numbers):
+def generate_equation(no_operators, operators, gen_num):
     total = 0
     equation = []
     final_equation = []
@@ -39,10 +11,8 @@ def generate_equation(no_operators, operators, generated_numbers):
     for i in range(0, no_operators+1):
         # select number (between 0 & 100)
         num = random.randint(0, 100)
-        while (num in generated_numbers):
+        while (num in gen_num):
             num = random.randint(0, 100)
-            print("Duplicate", num)
-            # return -1
         # select operator
         operator = operators[random.randint(0, 1)]
 
@@ -51,7 +21,6 @@ def generate_equation(no_operators, operators, generated_numbers):
         # prevent prime numbers if the operator is "/"
         # this will allow prime factorials division
         if operator == "/":
-            print("Divide", num)
             if num in prime_nos:
                 print("Prime numbers have no prime factorials")
                 return -1
@@ -68,17 +37,14 @@ def generate_equation(no_operators, operators, generated_numbers):
                         if num_temp % prime_nos[p] == 0:
                             num_temp /= prime_nos[p]
                             prime_factorials.append(prime_nos[p])
-                    # time.sleep(3)
                     # print(num, num_temp, prime_factorials)
                     if num_temp == 1:
                         break
-                print("Prime factorials", prime_factorials)
+                # print("Prime factorials", prime_factorials)
                 num = prime_factorials[random.randint(0, len(prime_factorials)-1)]
-                if num in generated_numbers:
+                if num in gen_num:
                     print(num, "Duplicate prime factorial")
                     return -1
-                print("Divide by", num)
-                # equation[-2] = num
         prime_factorials.clear()
 
         equation.append(num)
@@ -89,49 +55,39 @@ def generate_equation(no_operators, operators, generated_numbers):
     
     final_equation = equation.copy()
 
-    # work on the equation here
-    # follow the rule of bodmas (we only care about dmas since we don't deal with brackets and orders of powers here)
-    while "/" in equation:
-        div_idx = equation.index("/")
-        # print(div_idx)
-        # prevent division by 0
-        if equation[div_idx+1] == 0:
-            print("Division by 0")
-            return -1
-        total = equation[div_idx-1] / equation[div_idx+1]
-        if equation[div_idx-1] % equation[div_idx+1] == 0:
-            equation[div_idx-1] = int(total)
-        else:
-            equation[div_idx-1] = total
-        del equation[div_idx+1]
-        del equation[div_idx]
-        print("After division", equation)
-    while "x" in equation:
-        mul_idx = equation.index("x")
-        # print(mul_idx)
-        total = equation[mul_idx-1] * equation[mul_idx+1]
-        equation[mul_idx-1] = total
-        del equation[mul_idx+1]
-        del equation[mul_idx]
-        print("After multiplication", equation)
-    while "+" in equation:
-        add_idx = equation.index("+")
-        # print(add_idx)
-        total = equation[add_idx-1] + equation[add_idx+1]
-        equation[add_idx-1] = total
-        del equation[add_idx+1]
-        del equation[add_idx]
-        print("After addition", equation)
-    while "-" in equation:
-        sub_idx = equation.index("-")
-        # print(sub_idx)
-        total = equation[sub_idx-1] - equation[sub_idx+1]
-        equation[sub_idx-1] = total
-        del equation[sub_idx+1]
-        del equation[sub_idx]
-        print("After subtraction", equation)
-    
-    if total in generated_numbers:
+    total = 0
+    op = None
+
+    for elem in equation:
+        # print(elem, total)
+        # input("continue??")
+        if type(elem) == int:
+            if op == None:
+                total = elem
+            else:
+                if op == '+':
+                    total += elem
+                elif op == '-':
+                    total -= elem
+                elif op == '/':
+                    total /= elem
+                elif op == 'x':
+                    total *= elem
+                else:
+                    print("ERROR. No operator found.")
+        elif type(elem) == str:
+            if elem == '+':
+                op = '+'
+            elif elem == '-':
+                op = '-'
+            elif elem == '/':
+                op = '/'
+            elif elem == 'x':
+                op = 'x'
+            else:
+                print("ERROR. No operator found.")
+
+    if total in gen_num:
         print("Duplicate total", total)
         return -1
     
@@ -143,20 +99,47 @@ def generate_equation(no_operators, operators, generated_numbers):
     if total > 100 or total < 0:
         print("Exceed card support", total)
         return -1
+
+    if "-" in equation and "+" in equation:
+        subtract_index = equation.index("-")
+        addition_index = equation.index("+")
+        if equation[subtract_index-1] < equation[subtract_index+1]:
+            print("Negative subtotal, reordering equation", equation)
+            # find + X
+            # replace position with - Y
+            # e.g. A - Y + X --> A + X - Y
+            # A - Y + X --> A + Y - X
+            final_equation[subtract_index] = equation[addition_index]
+            final_equation[addition_index] = equation[subtract_index]
+            final_equation[subtract_index+1] = equation[addition_index+1]
+            final_equation[addition_index+1] = equation[subtract_index+1]
+            print("Reodered equation", final_equation)
+
+    gen_num.append(total)
     final_equation.append("=")
-    final_equation.append(total)
 
     while (True):
         other_num = random.randint(0, 100)
-        if other_num not in generated_numbers:
-            generated_numbers.append(other_num)
-            final_equation.append("or")
-            final_equation.append(other_num)
+        if other_num not in gen_num:
+            gen_num.append(other_num)
             break
+
+    rhs = []
+    rhs.append(total)
+    rhs.append(other_num)
+
+    rhs_a = rhs.pop(rhs.index(rhs[random.randint(0,1)]))
+    rhs_b = rhs.pop()
+
+    final_equation.append(rhs_a)
+    final_equation.append("or")
+    final_equation.append(rhs_b)
+    final_equation.append("Answer is")
+    final_equation.append(total)
 
     return final_equation
 
-def generate_greater_less_than_equations(operators, generated_numbers):
+def generate_greater_less_than_equations(operators, gen_num):
     equation = []
 
     operator = operators[random.randint(0,1)]
@@ -164,7 +147,7 @@ def generate_greater_less_than_equations(operators, generated_numbers):
 
     other_num = 0
     
-    if num in generated_numbers:
+    if num in gen_num:
         print("Duplicate GT, LT #1", num)
         return -1
     equation.append(num)
@@ -173,7 +156,7 @@ def generate_greater_less_than_equations(operators, generated_numbers):
     num_gt = random.randint(num+1, 100)
     num_lt = random.randint(0+1, num-1)
 
-    if num_gt in generated_numbers or num_lt in generated_numbers:
+    if num_gt in gen_num or num_lt in gen_num:
         print("Duplicate GT, LT #2", num_lt, num_gt)
         return -1
 
@@ -211,17 +194,18 @@ if __name__ == "__main__":
     total_equations = 9
 
     random.seed()
+    
+    num_add_sub_equations = 6
 
-    # generate equations containing + and - operators only
-    num_add_sub_equations = 5
-    print("Generating equations containing + and - operators only")
-    for num_equations in range(0, num_add_sub_equations):
-        # do 2 operators for all equations
-        # no_operators = random.randint(1, 2)
-        no_operators = 2
+    # generate the x and / first to reduce chance of duplicate
+    # generate equations containing x and / operators only
+    print("Generating equations containing x and / operators only")
+    for num_equations in range(0, total_equations-num_add_sub_equations):
+        no_operators = random.randint(1, 2)
+        # no_operators = 2
         print("no_operators", no_operators)
         while (True):
-            e = generate_equation(no_operators, operators[0:2], generated_numbers)
+            e = generate_equation(no_operators, operators[2:4], generated_numbers)
             if e != -1:
                 print("Equation", e)
                 equations.append(e)
@@ -233,14 +217,15 @@ if __name__ == "__main__":
             else:
                 print("> Retry")
 
-    # generate equations containing / and x operators only
-    print("Generating equations containing / and x operators only")
-    for num_equations in range(0, total_equations-num_add_sub_equations):
-        # no_operators = random.randint(1, 2)
-        no_operators = 2
+    # generate equations containing + and - operators only
+    print("Generating equations containing + and - operators only")
+    for num_equations in range(0, num_add_sub_equations):
+        # do 2 operators for all equations
+        no_operators = random.randint(1, 2)
+        # no_operators = 2
         print("no_operators", no_operators)
         while (True):
-            e = generate_equation(no_operators, operators[2:4], generated_numbers)
+            e = generate_equation(no_operators, operators[0:2], generated_numbers)
             if e != -1:
                 print("Equation", e)
                 equations.append(e)
@@ -256,20 +241,10 @@ if __name__ == "__main__":
     # for visual manual tallying if there are duplicate bugs
     all_numbers = []
 
-    # generate the greater and less than equations
-    # [26 Jan 2022] leave this after problem solving phase 1 done
-    # for num_gt_lt_eq in range(0, 3):
-    #     while (True):
-    #         e = generate_greater_less_than_equations(equalities_inequalities, generated_numbers)
-    #         if e != -1:
-    #             print("Equation", e)
-    #             equations.append(e)
-    #             for x in e:
-    #                 if isinstance(x, int):
-    #                     generated_numbers.append(x)
-    #             break
-    #         else:
-    #             print("Retry")
+    # shift the x and / equations to the last set, so that baby can warm up with + and - on first 2 sets
+    equations.append(equations.pop(0))
+    equations.append(equations.pop(0))
+    equations.append(equations.pop(0))
 
     for l in equations:
         for n in l:
@@ -278,14 +253,9 @@ if __name__ == "__main__":
                 if n not in sorted_numbers:
                     sorted_numbers.append(n)
 
-    # shuffle the list so that the same operations are not combined
-    # [26 Jan 2022] Do this at a later stage
-    # random.shuffle(equations)
-
     print("  \n##### START #####")
     print("  >>> Split into 3 equations per set. E.g. Set A has the 1st 3 equations, Set B has the next 3 equations. Set C has the last 3 equations. Show the equations and let baby choose the answer.")
-    print("  >>> These are the equations to show. The first number in the RHS is always the correct total.")
-    # pprint(equations)
+    print("  >>> These are the equations to show. For the adults' sake, the first number in the RHS is always the correct total. However, in order to prevent baby from spotting a pattern and always choosing the first as the answer, do switch the answer to either the 1st or second.")
     count_set = 0
     for e in equations:
         e_str = ""
