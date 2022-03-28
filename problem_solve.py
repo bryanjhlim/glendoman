@@ -255,7 +255,9 @@ if __name__ == "__main__":
 
     print("  \n##### START #####")
     print("  >>> Split into 3 equations per set. E.g. Set A has the 1st 3 equations, Set B has the next 3 equations. Set C has the last 3 equations. Show the equations and let baby choose the answer.")
-    print("  >>> These are the equations to show. For the adults' sake, the first number in the RHS is always the correct total. However, in order to prevent baby from spotting a pattern and always choosing the first as the answer, do switch the answer to either the 1st or second.")
+    print("  >>> HOW TO READ: The equations are read as 'A PLUS B EQUALS C'.")
+    print("  >>> There is a need to be consistent and accurate. Don't vary your manner of speech among 'The answer is', 'equals' and 'equals to'. Stick to one and keep using it.")
+    print("  >>> These are the different set of equations to show.")
     count_set = 0
     for e in equations:
         e_str = ""
@@ -267,5 +269,5 @@ if __name__ == "__main__":
         count_set += 1
     sorted_numbers.sort()
     # all_numbers.sort()
-    print("  >>> For ease of preparation, take these numbers out from the main pile\n", sorted_numbers)
+    print("  >>> For ease of preparation, take these numbers out from the main pile. You may sort the numbers in ascending order after for ease of keeping & setting up the next time.\n", sorted_numbers)
     # print("For manual verification of duplicates", all_numbers)
